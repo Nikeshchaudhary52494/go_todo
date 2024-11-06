@@ -1,30 +1,37 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
-	"github.com/gorilla/mux"
-
+	"github.com/Nikeshchaudhary52494/goTest/auth"
 	"github.com/Nikeshchaudhary52494/goTest/handlers"
 	"github.com/Nikeshchaudhary52494/goTest/storage"
+	"github.com/gorilla/mux"
 )
 
 func main() {
 	if err := storage.LoadTodos(); err != nil {
 		log.Fatalf("Failed to load todos: %v", err)
-		fmt.Println("hello")
 	}
-	fmt.Println("hell8888")
+	if err := storage.LoadUsers(); err != nil {
+		log.Fatalf("Failed to load users: %v", err)
+	}
 
 	r := mux.NewRouter()
 
-	r.HandleFunc("/todos", handlers.GetTodosHandler).Methods("GET")
-	r.HandleFunc("/todos/create", handlers.CreateTodoHandler).Methods("POST")
-	r.HandleFunc("/todos/update", handlers.UpdateTodoHandler).Methods("PUT")
-	r.HandleFunc("/todos/delete", handlers.DeleteTodoHandler).Methods("DELETE")
-	r.HandleFunc("/todos/get", handlers.GetTodoHandler).Methods("GET")
+	r.HandleFunc("/login", handlers.LoginHandler).Methods("POST")
+	r.HandleFunc("/register", handlers.RegisterHandler).Methods("POST")
+	r.HandleFunc("/logout", handlers.LogoutHandler).Methods("POST")
+
+	todoRouter := r.PathPrefix("/todos").Subrouter()
+	todoRouter.Use(auth.AuthMiddleware)
+
+	todoRouter.HandleFunc("", handlers.GetTodosHandler).Methods("GET")
+	todoRouter.HandleFunc("/create", handlers.CreateTodoHandler).Methods("POST")
+	todoRouter.HandleFunc("/update", handlers.UpdateTodoHandler).Methods("PUT")
+	todoRouter.HandleFunc("/delete", handlers.DeleteTodoHandler).Methods("DELETE")
+	todoRouter.HandleFunc("/get", handlers.GetTodoHandler).Methods("GET")
 
 	log.Println("Server is running on port 8080...")
 	if err := http.ListenAndServe(":8080", r); err != nil {
