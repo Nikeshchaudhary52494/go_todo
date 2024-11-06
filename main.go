@@ -1,15 +1,23 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
 
 	"github.com/Nikeshchaudhary52494/goTest/handlers"
+	"github.com/Nikeshchaudhary52494/goTest/storage"
 )
 
 func main() {
+	if err := storage.LoadTodos(); err != nil {
+		log.Fatalf("Failed to load todos: %v", err)
+		fmt.Println("hello")
+	}
+	fmt.Println("hell8888")
+
 	r := mux.NewRouter()
 
 	r.HandleFunc("/todos", handlers.GetTodosHandler).Methods("GET")
